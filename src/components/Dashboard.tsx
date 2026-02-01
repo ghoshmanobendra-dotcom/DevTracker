@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { Profile, DailyGoal, CodingProblem, DailyScore, WebProject, StudyNote, Shortcut } from '../types';
@@ -93,7 +93,7 @@ export function Dashboard() {
     }
   };
 
-  const handleGoalsUpdate = async () => {
+  const handleGoalsUpdate = useCallback(async () => {
     if (!user) return;
 
     const { data: updatedGoals } = await supabase
@@ -127,9 +127,9 @@ export function Dashboard() {
         setDailyScores(updatedScores);
       }
     }
-  };
+  }, [user, today]);
 
-  const handleProblemsUpdate = async () => {
+  const handleProblemsUpdate = useCallback(async () => {
     if (!user) return;
 
     const { data: updatedProblems } = await supabase
@@ -141,9 +141,9 @@ export function Dashboard() {
     if (updatedProblems) {
       setProblems(updatedProblems);
     }
-  };
+  }, [user]);
 
-  const handleProjectsUpdate = async () => {
+  const handleProjectsUpdate = useCallback(async () => {
     if (!user) return;
 
     const { data: updatedProjects } = await supabase
@@ -155,9 +155,9 @@ export function Dashboard() {
     if (updatedProjects) {
       setProjects(updatedProjects);
     }
-  };
+  }, [user]);
 
-  const handleNotesUpdate = async () => {
+  const handleNotesUpdate = useCallback(async () => {
     if (!user) return;
 
     const { data: updatedNotes } = await supabase
@@ -169,9 +169,9 @@ export function Dashboard() {
     if (updatedNotes) {
       setNotes(updatedNotes);
     }
-  };
+  }, [user]);
 
-  const handleShortcutsUpdate = async () => {
+  const handleShortcutsUpdate = useCallback(async () => {
     if (!user) return;
 
     const { data: updatedShortcuts } = await supabase
@@ -183,7 +183,7 @@ export function Dashboard() {
     if (updatedShortcuts) {
       setShortcuts(updatedShortcuts);
     }
-  };
+  }, [user]);
 
   if (loading) {
     return (

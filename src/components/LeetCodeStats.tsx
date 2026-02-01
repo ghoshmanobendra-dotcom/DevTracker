@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Trophy, Loader2, AlertCircle, ExternalLink, RefreshCw } from 'lucide-react';
 import { syncLeetCodeProblems } from '../utils/leetcode';
@@ -40,7 +40,48 @@ export function LeetCodeStats({ userId, onSync }: LeetCodeStatsProps) {
     const [error, setError] = useState('');
     const [isEditing, setIsEditing] = useState(!username);
 
-    const fetchStats = async (user: string) => {
+    const calculateStreak = (calendar: Record<string, number>): number => {
+        if (!calendar) return 0;
+        const timestamps = Object.keys(calendar).map(Number).sort((a, b) => b - a); // Descending
+        if (timestamps.length === 0) return 0;
+
+        // LeetCode timestamps are seconds
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        // Helper to get normalized date timestamp
+        const getDayTs = (ts: number) => {
+            const date = new Date(ts * 1000);
+            date.setHours(0, 0, 0, 0);
+            return date.getTime();
+        };
+
+        const todayTs = today.getTime();
+        const yesterdayTs = todayTs - 86400000; // 24 hours in milliseconds
+
+        let currentStreak = 0;
+        let checkTs = todayTs;
+
+        // Use a set for O(1) lookup of submission days
+        const submissionDays = new Set(timestamps.map(ts => getDayTs(ts)));
+
+        // If no submission today, check if streak is alive from yesterday
+        if (!submissionDays.has(todayTs)) {
+            if (!submissionDays.has(yesterdayTs)) {
+                return 0; // Streak broken
+            }
+            checkTs = yesterdayTs; // Start counting from yesterday
+        }
+
+        while (submissionDays.has(checkTs)) {
+            currentStreak++;
+            checkTs -= 86400000; // Go back one day
+        }
+
+        return currentStreak;
+    };
+
+    const fetchStats = useCallback(async (user: string) => {
         if (!user) return;
         setLoading(true);
         setError('');
@@ -205,48 +246,9 @@ export function LeetCodeStats({ userId, onSync }: LeetCodeStatsProps) {
         } finally {
             setLoading(false);
         }
-    };
+    }, [userId, onSync]);
 
-    const calculateStreak = (calendar: Record<string, number>): number => {
-        if (!calendar) return 0;
-        const timestamps = Object.keys(calendar).map(Number).sort((a, b) => b - a); // Descending
-        if (timestamps.length === 0) return 0;
 
-        // LeetCode timestamps are seconds
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-
-        // Helper to get normalized date timestamp
-        const getDayTs = (ts: number) => {
-            const date = new Date(ts * 1000);
-            date.setHours(0, 0, 0, 0);
-            return date.getTime();
-        };
-
-        const todayTs = today.getTime();
-        const yesterdayTs = todayTs - 86400000; // 24 hours in milliseconds
-
-        let currentStreak = 0;
-        let checkTs = todayTs;
-
-        // Use a set for O(1) lookup of submission days
-        const submissionDays = new Set(timestamps.map(ts => getDayTs(ts)));
-
-        // If no submission today, check if streak is alive from yesterday
-        if (!submissionDays.has(todayTs)) {
-            if (!submissionDays.has(yesterdayTs)) {
-                return 0; // Streak broken
-            }
-            checkTs = yesterdayTs; // Start counting from yesterday
-        }
-
-        while (submissionDays.has(checkTs)) {
-            currentStreak++;
-            checkTs -= 86400000; // Go back one day
-        }
-
-        return currentStreak;
-    };
 
     useEffect(() => {
         if (username) {
@@ -260,7 +262,7 @@ export function LeetCodeStats({ userId, onSync }: LeetCodeStatsProps) {
 
             return () => clearInterval(interval);
         }
-    }, [username, userId, onSync]);
+    }, [username, fetchStats]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
