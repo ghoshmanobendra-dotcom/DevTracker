@@ -73,14 +73,29 @@ export function StudyNotes({ notes, onNotesUpdate }: StudyNotesProps) {
 
     const isImage = (type?: string) => type?.startsWith('image/');
 
-    const getDownloadUrl = (url: string) => {
-        if (url.includes('res.cloudinary.com')) {
-            const parts = url.split('/upload/');
+    // Fix PDFs that were uploaded before the resource_type fix (image/upload → raw/upload)
+    const fixCloudinaryPdfUrl = (url: string, mediaType?: string) => {
+        if (mediaType === 'application/pdf' && url.includes('res.cloudinary.com') && url.includes('/image/upload/')) {
+            return url.replace('/image/upload/', '/raw/upload/');
+        }
+        return url;
+    };
+
+    const getDownloadUrl = (url: string, mediaType?: string) => {
+        const fixedUrl = fixCloudinaryPdfUrl(url, mediaType);
+        if (fixedUrl.includes('res.cloudinary.com')) {
+            const parts = fixedUrl.split('/upload/');
             if (parts.length === 2) {
                 return `${parts[0]}/upload/fl_attachment/${parts[1]}`;
             }
         }
-        return url;
+        return fixedUrl;
+    };
+
+    // Use Google Docs Viewer to embed PDFs — avoids cross-origin iframe restrictions
+    const getGoogleDocsViewerUrl = (url: string, mediaType?: string) => {
+        const fixedUrl = fixCloudinaryPdfUrl(url, mediaType);
+        return `https://docs.google.com/viewer?url=${encodeURIComponent(fixedUrl)}&embedded=true`;
     };
 
     return (
@@ -219,15 +234,21 @@ export function StudyNotes({ notes, onNotesUpdate }: StudyNotesProps) {
                                                                 <span className="text-sm font-medium text-white truncate max-w-[200px]">{note.media_name || 'PDF Document'}</span>
                                                             </div>
                                                             <div className="flex gap-2">
-                                                                <a href={note.media_url} target="_blank" rel="noopener noreferrer" className="px-3 py-1.5 text-xs bg-purple-500/20 text-purple-400 hover:bg-purple-500/30 rounded-lg transition-colors">
+                                                                <a href={fixCloudinaryPdfUrl(note.media_url, note.media_type)} target="_blank" rel="noopener noreferrer" className="px-3 py-1.5 text-xs bg-purple-500/20 text-purple-400 hover:bg-purple-500/30 rounded-lg transition-colors">
                                                                     Open in New Tab
                                                                 </a>
-                                                                <a href={getDownloadUrl(note.media_url)} target="_blank" rel="noopener noreferrer" className="px-3 py-1.5 text-xs bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 rounded-lg transition-colors">
+                                                                <a href={getDownloadUrl(note.media_url, note.media_type)} target="_blank" rel="noopener noreferrer" className="px-3 py-1.5 text-xs bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 rounded-lg transition-colors">
                                                                     Download
                                                                 </a>
                                                             </div>
                                                         </div>
-                                                        <iframe src={note.media_url} className="w-full h-[500px]" title={note.media_name || 'PDF Viewer'} />
+                                                        {/* Google Docs Viewer avoids cross-origin iframe restrictions for PDFs */}
+                                                        <iframe
+                                                            src={getGoogleDocsViewerUrl(note.media_url, note.media_type)}
+                                                            className="w-full h-[500px]"
+                                                            title={note.media_name || 'PDF Viewer'}
+                                                            allow="autoplay"
+                                                        />
                                                     </div>
                                                 ) : (
                                                     <div className="flex items-center gap-3 p-3 bg-gray-900/50 border border-white/10 rounded-xl">
