@@ -3,6 +3,8 @@ import { Shortcut } from '../types';
 import { Plus, Link as LinkIcon, FileText, Image, FileSpreadsheet, Trash2, X, File } from 'lucide-react';
 import api from '../lib/api';
 import { motion, AnimatePresence } from 'framer-motion';
+import { getDownloadUrl } from '../lib/cloudinary';
+import { CloudinaryImage } from './CloudinaryImage';
 
 interface ShortcutsProps {
     shortcuts: Shortcut[];
@@ -61,12 +63,19 @@ export function Shortcuts({ shortcuts, onShortcutsUpdate }: ShortcutsProps) {
     const getIcon = (shortcut: Shortcut) => {
         if (shortcut.type === 'url') {
             return (
-                <img src={`https://www.google.com/s2/favicons?sz=64&domain_url=${shortcut.value}`}
-                    alt={shortcut.title} className="w-6 h-6 object-contain"
+                <img
+                    src={`https://www.google.com/s2/favicons?sz=64&domain_url=${shortcut.value}`}
+                    alt={shortcut.title}
+                    width={24}
+                    height={24}
+                    loading="lazy"
+                    decoding="async"
+                    className="w-6 h-6 object-contain"
                     onError={(e) => {
                         e.currentTarget.style.display = 'none';
                         e.currentTarget.parentElement?.querySelector('.fallback-icon')?.classList.remove('hidden');
-                    }} />
+                    }}
+                />
             );
         }
         const fileType = shortcut.file_type?.toLowerCase() || '';
@@ -83,15 +92,6 @@ export function Shortcuts({ shortcuts, onShortcutsUpdate }: ShortcutsProps) {
         }
     };
 
-    const getDownloadUrl = (url: string) => {
-        if (url.includes('res.cloudinary.com')) {
-            const parts = url.split('/upload/');
-            if (parts.length === 2) {
-                return `${parts[0]}/upload/fl_attachment/${parts[1]}`;
-            }
-        }
-        return url;
-    };
 
     return (
         <>
@@ -204,7 +204,12 @@ export function Shortcuts({ shortcuts, onShortcutsUpdate }: ShortcutsProps) {
                             </div>
                             <div className="flex-1 bg-black/50 p-1 overflow-auto flex items-center justify-center min-h-[300px]">
                                 {previewFile.type.toLowerCase().includes('image') ? (
-                                    <img src={previewFile.url} alt={previewFile.title} className="max-w-full max-h-[80vh] object-contain rounded-lg" />
+                                    <CloudinaryImage
+                                        src={previewFile.url}
+                                        alt={previewFile.title}
+                                        className="max-w-full max-h-[80vh] object-contain rounded-lg"
+                                        sizes="90vw"
+                                    />
                                 ) : previewFile.type.toLowerCase().includes('pdf') ? (
                                     <iframe src={previewFile.url} className="w-full h-[80vh] rounded-lg" title={previewFile.title} />
                                 ) : (

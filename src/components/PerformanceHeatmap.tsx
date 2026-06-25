@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { DailyScore } from '../types';
 import { Info } from 'lucide-react';
 
@@ -16,21 +16,20 @@ interface DayData {
 
 export function PerformanceHeatmap({ dailyScores }: HeatmapProps) {
   const [hoveredDay, setHoveredDay] = useState<DayData | null>(null);
-  const [heatmapData, setHeatmapData] = useState<DayData[]>([]);
-  const [stats, setStats] = useState({ totalDays: 0, maxStreak: 0, currentStreak: 0 });
 
-  useEffect(() => {
+  // ── Single memo: build heatmap + streak stats + week grid in one pass ────
+  // Replaces: useEffect (2 setState calls → 2 re-renders) + inline week loop
+  const { weeks, stats } = useMemo(() => {
     const today = new Date();
     const oneYearAgo = new Date(today);
     oneYearAgo.setFullYear(today.getFullYear() - 1);
 
-    const data: DayData[] = [];
     const scoreMap = new Map(dailyScores.map(s => [s.date, s]));
+    const data: DayData[] = [];
 
     for (let d = new Date(oneYearAgo); d <= today; d.setDate(d.getDate() + 1)) {
       const dateStr = d.toISOString().split('T')[0];
       const dayScore = scoreMap.get(dateStr);
-
       let level = 0;
       if (dayScore && dayScore.score > 0) {
         if (dayScore.goals_completed === dayScore.total_goals && dayScore.total_goals > 0) {
@@ -40,7 +39,6 @@ export function PerformanceHeatmap({ dailyScores }: HeatmapProps) {
           level = ratio > 0.7 ? 3 : ratio > 0.4 ? 2 : 1;
         }
       }
-
       data.push({
         date: dateStr,
         score: dayScore?.score || 0,
@@ -50,30 +48,43 @@ export function PerformanceHeatmap({ dailyScores }: HeatmapProps) {
       });
     }
 
-    setHeatmapData(data);
-
-    let currentStreak = 0;
-    let maxStreak = 0;
-    let tempStreak = 0;
-    let totalActive = 0;
-
+    // Streak stats
+    let currentStreak = 0, maxStreak = 0, tempStreak = 0, totalActive = 0;
     for (let i = data.length - 1; i >= 0; i--) {
       if (data[i].level > 0) {
         tempStreak++;
         totalActive++;
-        if (i === data.length - 1 || currentStreak > 0) {
-          currentStreak = tempStreak;
-        }
+        if (i === data.length - 1 || currentStreak > 0) currentStreak = tempStreak;
         maxStreak = Math.max(maxStreak, tempStreak);
       } else {
         tempStreak = 0;
       }
     }
 
-    setStats({ totalDays: totalActive, maxStreak, currentStreak });
+    // Week grid grouping
+    const builtWeeks: DayData[][] = [];
+    let currentWeek: DayData[] = [];
+    data.forEach((day, index) => {
+      const dayOfWeek = new Date(day.date).getDay();
+      if (index === 0 && dayOfWeek !== 0) {
+        for (let i = 0; i < dayOfWeek; i++) {
+          currentWeek.push({ date: '', score: 0, goalsCompleted: 0, totalGoals: 0, level: -1 });
+        }
+      }
+      currentWeek.push(day);
+      if (dayOfWeek === 6 || index === data.length - 1) {
+        builtWeeks.push([...currentWeek]);
+        currentWeek = [];
+      }
+    });
+
+    return {
+      weeks: builtWeeks,
+      stats: { totalDays: totalActive, maxStreak, currentStreak },
+    };
   }, [dailyScores]);
 
-  const getLevelColor = (level: number) => {
+  const getLevelColor = useCallback((level: number) => {
     switch (level) {
       case 0: return 'bg-gray-800';
       case 1: return 'bg-green-900';
@@ -82,33 +93,7 @@ export function PerformanceHeatmap({ dailyScores }: HeatmapProps) {
       case 4: return 'bg-green-400';
       default: return 'bg-gray-800';
     }
-  };
-
-  const weeks: DayData[][] = [];
-  let currentWeek: DayData[] = [];
-
-  heatmapData.forEach((day, index) => {
-    const dayOfWeek = new Date(day.date).getDay();
-
-    if (index === 0 && dayOfWeek !== 0) {
-      for (let i = 0; i < dayOfWeek; i++) {
-        currentWeek.push({
-          date: '',
-          score: 0,
-          goalsCompleted: 0,
-          totalGoals: 0,
-          level: -1,
-        });
-      }
-    }
-
-    currentWeek.push(day);
-
-    if (dayOfWeek === 6 || index === heatmapData.length - 1) {
-      weeks.push([...currentWeek]);
-      currentWeek = [];
-    }
-  });
+  }, []);
 
   const monthLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 

@@ -2,13 +2,91 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <link rel="icon" type="image/svg+xml" href="/logo.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>DevTracker</title>
-  <meta name="description" content="Track your coding journey, daily goals, and career progress" />
+
+  <!-- ── Favicon ────────────────────────────────────────────────── -->
+  <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+
+  <!-- ── Page metadata ─────────────────────────────────────────── -->
+  <title>DevTracker — Track Your Coding Journey</title>
+  <meta name="description" content="Track your coding journey, daily goals, LeetCode stats, and career progress in one place." />
+  <!-- Prevents a flash of white chrome on mobile before CSS loads -->
+  <meta name="theme-color" content="#000000" />
+
+  <!-- ══════════════════════════════════════════════════════════════
+       STEP 1 — preconnect to origins we fetch from immediately
+       Opens TCP + TLS handshake in parallel with HTML parse.
+       Only use for origins hit on first paint or very early.
+  ══════════════════════════════════════════════════════════════ -->
+
+  <!-- Google Fonts CDN: fonts.googleapis.com serves the CSS,
+       fonts.gstatic.com serves the actual .woff2 files.
+       Both need preconnect; gstatic needs crossorigin for CORS. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+  <!-- Cloudinary: serves user-uploaded images and files.
+       No crossorigin — your backend signs these with auth tokens. -->
+  <link rel="preconnect" href="https://res.cloudinary.com" />
+
+  <!-- Auth page background texture — CSS background-image URL,
+       triggered on first paint for logged-out users. -->
+  <link rel="preconnect" href="https://grainy-gradients.vercel.app" />
+
+  <!-- ══════════════════════════════════════════════════════════════
+       STEP 2 — dns-prefetch for lazily-loaded third-party domains
+       These are only contacted after a user action (setting a
+       LeetCode username, opening a PDF). dns-prefetch resolves the
+       IP address in the background without opening a TCP connection,
+       so it's low-cost and non-blocking.
+  ══════════════════════════════════════════════════════════════ -->
+
+  <!-- Google favicon API (Shortcuts panel) -->
+  <link rel="dns-prefetch" href="https://www.google.com" />
+  <!-- Google Docs PDF viewer (StudyNotes + Shortcuts panels) -->
+  <link rel="dns-prefetch" href="https://docs.google.com" />
+  <!-- LeetCode stats APIs — called only after username is set -->
+  <link rel="dns-prefetch" href="https://leetcode-api-faisalshohag.vercel.app" />
+  <link rel="dns-prefetch" href="https://alfa-leetcode-api.onrender.com" />
+  <link rel="dns-prefetch" href="https://leetcode-stats-api.herokuapp.com" />
+
+  <!-- ══════════════════════════════════════════════════════════════
+       STEP 3 — Font loading: preload the .woff2 + non-blocking CSS
+       Pattern: preconnect → preload woff2 → <link> stylesheet with
+       media trick → <noscript> fallback.
+       font-display:swap is embedded in the Google Fonts URL param.
+  ══════════════════════════════════════════════════════════════ -->
+
+  <!-- Preload the most critical weight (400 Regular) so the browser
+       fetches the font file before parsing the stylesheet. -->
+  <link
+    rel="preload"
+    as="font"
+    type="font/woff2"
+    href="https://fonts.gstatic.com/s/inter/v18/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuLyfAZ9hiJ-Ek-_EeA.woff2"
+    crossorigin
+  />
+
+  <!-- Load the full Inter stylesheet non-blocking via media trick:
+       media="print" makes it non-render-blocking; onload switches
+       it to "all" once downloaded. display=swap prevents FOIT. -->
+  <link
+    rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+    media="print"
+    onload="this.media='all'"
+  />
+  <!-- Fallback for JS-disabled browsers -->
+  <noscript>
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+    />
+  </noscript>
 </head>
 <body>
   <div id="root"></div>
   <script type="module" src="/src/main.tsx"></script>
 </body>
 </html>
+

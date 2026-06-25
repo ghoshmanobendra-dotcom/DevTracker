@@ -1,19 +1,30 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, lazy, Suspense } from 'react';
 import api from '../lib/api';
 import { useAuth } from '../contexts/AuthContext';
 import { Profile, DailyGoal, CodingProblem, DailyScore, WebProject, StudyNote, Shortcut } from '../types';
-import { ProfileDashboard } from './ProfileDashboard';
-import { DailyGoals } from './DailyGoals';
-import { CodingTracker } from './CodingTracker';
-import { WebDevTracker } from './WebDevTracker';
-import { StudyNotes } from './StudyNotes';
-import { Shortcuts } from './Shortcuts';
-import { PerformanceHeatmap } from './PerformanceHeatmap';
-import { LeetCodeStats } from './LeetCodeStats';
 import { updateDailyScore, updateProfileStreaks } from '../utils/scoring';
 import { Loader2 } from 'lucide-react';
-import { CareerRoadmap } from './CareerRoadmap';
 import { CAREER_PATHS } from '../data/roadmaps';
+
+// ── Dynamic imports: each component becomes its own async chunk ─────────────
+// This keeps the initial JS payload tiny — components load only after login.
+const ProfileDashboard  = lazy(() => import('./ProfileDashboard').then(m => ({ default: m.ProfileDashboard })));
+const DailyGoals        = lazy(() => import('./DailyGoals').then(m => ({ default: m.DailyGoals })));
+const CodingTracker     = lazy(() => import('./CodingTracker').then(m => ({ default: m.CodingTracker })));
+const WebDevTracker     = lazy(() => import('./WebDevTracker').then(m => ({ default: m.WebDevTracker })));
+const StudyNotes        = lazy(() => import('./StudyNotes').then(m => ({ default: m.StudyNotes })));
+const Shortcuts         = lazy(() => import('./Shortcuts').then(m => ({ default: m.Shortcuts })));
+const PerformanceHeatmap = lazy(() => import('./PerformanceHeatmap').then(m => ({ default: m.PerformanceHeatmap })));
+const LeetCodeStats     = lazy(() => import('./LeetCodeStats').then(m => ({ default: m.LeetCodeStats })));
+const CareerRoadmap     = lazy(() => import('./CareerRoadmap').then(m => ({ default: m.CareerRoadmap })));
+
+// Shared skeleton shown while a lazy panel loads
+function PanelSkeleton() {
+  return (
+    <div className="rounded-xl border border-white/5 bg-white/[0.02] animate-pulse h-48 w-full" />
+  );
+}
+
 
 export function Dashboard() {
   const { user } = useAuth();
@@ -144,29 +155,47 @@ export function Dashboard() {
       </div>
 
       <div className="relative max-w-7xl mx-auto px-4 py-8 space-y-8">
-        <ProfileDashboard
-          profile={profile}
-          todayScore={todayScore}
-          goalsCompletedThisMonth={goalsCompletedThisMonth}
-        />
+        <Suspense fallback={<PanelSkeleton />}>
+          <ProfileDashboard
+            profile={profile}
+            todayScore={todayScore}
+            goalsCompletedThisMonth={goalsCompletedThisMonth}
+          />
+        </Suspense>
 
-        <PerformanceHeatmap dailyScores={dailyScores} />
+        <Suspense fallback={<PanelSkeleton />}>
+          <PerformanceHeatmap dailyScores={dailyScores} />
+        </Suspense>
 
-        <Shortcuts shortcuts={shortcuts} onShortcutsUpdate={handleShortcutsUpdate} />
+        <Suspense fallback={<PanelSkeleton />}>
+          <Shortcuts shortcuts={shortcuts} onShortcutsUpdate={handleShortcutsUpdate} />
+        </Suspense>
 
-        <CareerRoadmap userId={user.id} careerPathId={profile.career_path} />
+        <Suspense fallback={<PanelSkeleton />}>
+          <CareerRoadmap userId={user.id} careerPathId={profile.career_path} />
+        </Suspense>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <DailyGoals goals={goals} onGoalsUpdate={handleGoalsUpdate} />
-          <LeetCodeStats userId={user?.id} onSync={handleProblemsUpdate} />
+          <Suspense fallback={<PanelSkeleton />}>
+            <DailyGoals goals={goals} onGoalsUpdate={handleGoalsUpdate} />
+          </Suspense>
+          <Suspense fallback={<PanelSkeleton />}>
+            <LeetCodeStats userId={user?.id} onSync={handleProblemsUpdate} />
+          </Suspense>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <CodingTracker problems={problems} onProblemsUpdate={handleProblemsUpdate} />
-          <WebDevTracker projects={projects} onProjectsUpdate={handleProjectsUpdate} sectionTitle={projectSectionTitle} />
+          <Suspense fallback={<PanelSkeleton />}>
+            <CodingTracker problems={problems} onProblemsUpdate={handleProblemsUpdate} />
+          </Suspense>
+          <Suspense fallback={<PanelSkeleton />}>
+            <WebDevTracker projects={projects} onProjectsUpdate={handleProjectsUpdate} sectionTitle={projectSectionTitle} />
+          </Suspense>
         </div>
 
-        <StudyNotes notes={notes} onNotesUpdate={handleNotesUpdate} />
+        <Suspense fallback={<PanelSkeleton />}>
+          <StudyNotes notes={notes} onNotesUpdate={handleNotesUpdate} />
+        </Suspense>
       </div>
     </div>
   );

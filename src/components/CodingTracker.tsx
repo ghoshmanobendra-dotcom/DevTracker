@@ -30,6 +30,8 @@ export function CodingTracker({ problems, onProblemsUpdate }: CodingTrackerProps
   const [syncing, setSyncing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterDifficulty, setFilterDifficulty] = useState<'All' | 'Easy' | 'Medium' | 'Hard'>('All');
+  // Read once at mount — avoids synchronous localStorage.getItem on every render
+  const [leetcodeUsername] = useState<string | null>(() => localStorage.getItem('leetcode_username'));
 
   const filteredProblems = problems.filter(problem => {
     const matchesSearch = problem.problem_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -40,11 +42,10 @@ export function CodingTracker({ problems, onProblemsUpdate }: CodingTrackerProps
   });
 
   const handleSync = async () => {
-    const username = localStorage.getItem('leetcode_username');
-    if (!username || !user) return;
+    if (!leetcodeUsername || !user) return;
     setSyncing(true);
     try {
-      await syncLeetCodeProblems(user.id, username);
+      await syncLeetCodeProblems(user.id, leetcodeUsername);
       onProblemsUpdate();
     } catch (err) {
       console.error('Sync failed', err);
@@ -135,7 +136,7 @@ export function CodingTracker({ problems, onProblemsUpdate }: CodingTrackerProps
             className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all shadow-lg shadow-purple-500/20">
             <Plus className="w-4 h-4" />Add
           </button>
-          <button onClick={handleSync} disabled={syncing || !localStorage.getItem('leetcode_username')}
+          <button onClick={handleSync} disabled={syncing || !leetcodeUsername}
             className="flex items-center gap-2 px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-all disabled:opacity-50 border border-gray-700 hover:border-gray-500"
             title="Sync with LeetCode">
             <RefreshCw className={`w-4 h-4 ${syncing ? 'animate-spin' : ''}`} />

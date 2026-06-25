@@ -239,7 +239,15 @@ export function LeetCodeStats({ userId, onSync }: LeetCodeStatsProps) {
                         <div className="flex items-center gap-4">
                             <div className="w-16 h-16 rounded-full bg-yellow-500/10 flex items-center justify-center border border-yellow-500/20 shadow-lg shadow-yellow-500/5 relative overflow-hidden group">
                                 {stats.avatar ? (
-                                    <img src={stats.avatar} alt={stats.username} className="w-full h-full object-cover" />
+                                    <img
+                                        src={stats.avatar}
+                                        alt={`${stats.username}'s LeetCode avatar`}
+                                        width={64}
+                                        height={64}
+                                        loading="lazy"
+                                        decoding="async"
+                                        className="w-full h-full object-cover"
+                                    />
                                 ) : (
                                     <>
                                         <div className="absolute inset-0 bg-yellow-500/20 translate-y-full group-hover:translate-y-0 transition-transform duration-500" />

@@ -3,6 +3,8 @@ import { StudyNote } from '../types';
 import { Plus, BookOpen, Tag, Trash2, ChevronDown, ChevronUp, Paperclip, Image as ImageIcon, FileText, X } from 'lucide-react';
 import api from '../lib/api';
 import { motion, AnimatePresence } from 'framer-motion';
+import { fixPdfUrl, getDownloadUrl, getGoogleDocsViewerUrl } from '../lib/cloudinary';
+import { CloudinaryImage } from './CloudinaryImage';
 
 interface StudyNotesProps {
     notes: StudyNote[];
@@ -72,31 +74,6 @@ export function StudyNotes({ notes, onNotesUpdate }: StudyNotesProps) {
     };
 
     const isImage = (type?: string) => type?.startsWith('image/');
-
-    // Fix PDFs that were uploaded before the resource_type fix (image/upload → raw/upload)
-    const fixCloudinaryPdfUrl = (url: string, mediaType?: string) => {
-        if (mediaType === 'application/pdf' && url.includes('res.cloudinary.com') && url.includes('/image/upload/')) {
-            return url.replace('/image/upload/', '/raw/upload/');
-        }
-        return url;
-    };
-
-    const getDownloadUrl = (url: string, mediaType?: string) => {
-        const fixedUrl = fixCloudinaryPdfUrl(url, mediaType);
-        if (fixedUrl.includes('res.cloudinary.com')) {
-            const parts = fixedUrl.split('/upload/');
-            if (parts.length === 2) {
-                return `${parts[0]}/upload/fl_attachment/${parts[1]}`;
-            }
-        }
-        return fixedUrl;
-    };
-
-    // Use Google Docs Viewer to embed PDFs — avoids cross-origin iframe restrictions
-    const getGoogleDocsViewerUrl = (url: string, mediaType?: string) => {
-        const fixedUrl = fixCloudinaryPdfUrl(url, mediaType);
-        return `https://docs.google.com/viewer?url=${encodeURIComponent(fixedUrl)}&embedded=true`;
-    };
 
     return (
         <div className="bg-gray-900/40 backdrop-blur-xl border border-white/5 rounded-3xl p-6 shadow-xl relative overflow-hidden">
@@ -220,7 +197,13 @@ export function StudyNotes({ notes, onNotesUpdate }: StudyNotesProps) {
                                             <div className="mt-4">
                                                 {isImage(note.media_type) ? (
                                                     <div className="rounded-xl overflow-hidden border border-white/10 bg-black/20 relative group">
-                                                        <img src={note.media_url} alt={note.media_name || 'Note attachment'} className="max-w-full h-auto max-h-[400px] object-contain mx-auto" />
+                                                        <CloudinaryImage
+                                                            src={note.media_url}
+                                                            alt={note.media_name || 'Note attachment'}
+                                                            className="max-w-full h-auto max-h-[400px] object-contain mx-auto block"
+                                                            sizes="(max-width: 768px) 100vw, 50vw"
+                                                        />
+
                                                         <a href={getDownloadUrl(note.media_url)} target="_blank" rel="noopener noreferrer" 
                                                            className="absolute top-2 right-2 bg-black/50 hover:bg-black/80 text-white px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity text-sm backdrop-blur-md">
                                                             Download
@@ -234,7 +217,7 @@ export function StudyNotes({ notes, onNotesUpdate }: StudyNotesProps) {
                                                                 <span className="text-sm font-medium text-white truncate max-w-[200px]">{note.media_name || 'PDF Document'}</span>
                                                             </div>
                                                             <div className="flex gap-2">
-                                                                <a href={fixCloudinaryPdfUrl(note.media_url, note.media_type)} target="_blank" rel="noopener noreferrer" className="px-3 py-1.5 text-xs bg-purple-500/20 text-purple-400 hover:bg-purple-500/30 rounded-lg transition-colors">
+                                                                <a href={fixPdfUrl(note.media_url, note.media_type)} target="_blank" rel="noopener noreferrer" className="px-3 py-1.5 text-xs bg-purple-500/20 text-purple-400 hover:bg-purple-500/30 rounded-lg transition-colors">
                                                                     Open in New Tab
                                                                 </a>
                                                                 <a href={getDownloadUrl(note.media_url, note.media_type)} target="_blank" rel="noopener noreferrer" className="px-3 py-1.5 text-xs bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 rounded-lg transition-colors">
