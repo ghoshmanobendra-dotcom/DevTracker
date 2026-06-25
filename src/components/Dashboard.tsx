@@ -5,6 +5,12 @@ import { Profile, DailyGoal, CodingProblem, DailyScore, WebProject, StudyNote, S
 import { updateDailyScore, updateProfileStreaks } from '../utils/scoring';
 import { Loader2 } from 'lucide-react';
 import { CAREER_PATHS } from '../data/roadmaps';
+import { MobileBottomNav, TabID } from './MobileBottomNav';
+import { useAuth } from '../contexts/AuthContext';
+import { Profile, DailyGoal, CodingProblem, DailyScore, WebProject, StudyNote, Shortcut } from '../types';
+import { updateDailyScore, updateProfileStreaks } from '../utils/scoring';
+import { Loader2 } from 'lucide-react';
+import { CAREER_PATHS } from '../data/roadmaps';
 
 // ── Dynamic imports: each component becomes its own async chunk ─────────────
 // This keeps the initial JS payload tiny — components load only after login.
@@ -36,6 +42,7 @@ export function Dashboard() {
   const [shortcuts, setShortcuts] = useState<Shortcut[]>([]);
   const [dailyScores, setDailyScores] = useState<DailyScore[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<TabID>('home');
 
   const today = new Date().toISOString().split('T')[0];
 
@@ -154,49 +161,90 @@ export function Dashboard() {
         <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl"></div>
       </div>
 
-      <div className="relative max-w-7xl mx-auto px-4 py-8 space-y-8">
-        <Suspense fallback={<PanelSkeleton />}>
-          <ProfileDashboard
-            profile={profile}
-            todayScore={todayScore}
-            goalsCompletedThisMonth={goalsCompletedThisMonth}
-          />
-        </Suspense>
-
-        <Suspense fallback={<PanelSkeleton />}>
-          <PerformanceHeatmap dailyScores={dailyScores} />
-        </Suspense>
-
-        <Suspense fallback={<PanelSkeleton />}>
-          <Shortcuts shortcuts={shortcuts} onShortcutsUpdate={handleShortcutsUpdate} />
-        </Suspense>
-
-        <Suspense fallback={<PanelSkeleton />}>
-          <CareerRoadmap userId={user.id} careerPathId={profile.career_path} />
-        </Suspense>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="relative max-w-7xl mx-auto px-4 pt-8 pb-24 md:pb-8 space-y-8">
+        
+        {/* HOME TAB (Profile, Heatmap, Shortcuts) */}
+        <div className={`space-y-8 ${activeTab === 'home' ? 'block' : 'hidden'} md:block`}>
           <Suspense fallback={<PanelSkeleton />}>
-            <DailyGoals goals={goals} onGoalsUpdate={handleGoalsUpdate} />
+            <ProfileDashboard
+              profile={profile}
+              todayScore={todayScore}
+              goalsCompletedThisMonth={goalsCompletedThisMonth}
+            />
           </Suspense>
+
           <Suspense fallback={<PanelSkeleton />}>
-            <LeetCodeStats userId={user?.id} onSync={handleProblemsUpdate} />
+            <PerformanceHeatmap dailyScores={dailyScores} />
+          </Suspense>
+
+          <Suspense fallback={<PanelSkeleton />}>
+            <Shortcuts shortcuts={shortcuts} onShortcutsUpdate={handleShortcutsUpdate} />
           </Suspense>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* GOALS TAB (Career Roadmap, Daily Goals) */}
+        <div className={`space-y-8 ${activeTab === 'goals' ? 'block' : 'hidden'} md:block`}>
           <Suspense fallback={<PanelSkeleton />}>
-            <CodingTracker problems={problems} onProblemsUpdate={handleProblemsUpdate} />
+            <CareerRoadmap userId={user.id} careerPathId={profile.career_path} />
           </Suspense>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Suspense fallback={<PanelSkeleton />}>
+              <DailyGoals goals={goals} onGoalsUpdate={handleGoalsUpdate} />
+            </Suspense>
+            {/* Keeping LeetCodeStats in Code Tab below for mobile, but on desktop it spans the grid with Goals. 
+                For mobile, we'll separate them visually. */}
+            <div className="hidden md:block">
+              <Suspense fallback={<PanelSkeleton />}>
+                <LeetCodeStats userId={user?.id} onSync={handleProblemsUpdate} />
+              </Suspense>
+            </div>
+          </div>
+        </div>
+
+        {/* CODE TAB (LeetCodeStats on mobile, CodingTracker) */}
+        <div className={`space-y-8 ${activeTab === 'code' ? 'block' : 'hidden'} md:block`}>
+          {/* Mobile-only LeetCodeStats (Desktop handles this in the grid above) */}
+          <div className="block md:hidden">
+            <Suspense fallback={<PanelSkeleton />}>
+              <LeetCodeStats userId={user?.id} onSync={handleProblemsUpdate} />
+            </Suspense>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Suspense fallback={<PanelSkeleton />}>
+              <CodingTracker problems={problems} onProblemsUpdate={handleProblemsUpdate} />
+            </Suspense>
+            {/* Desktop-only WebDevTracker (Mobile handles this in Web tab) */}
+            <div className="hidden md:block">
+              <Suspense fallback={<PanelSkeleton />}>
+                <WebDevTracker projects={projects} onProjectsUpdate={handleProjectsUpdate} sectionTitle={projectSectionTitle} />
+              </Suspense>
+            </div>
+          </div>
+        </div>
+
+        {/* WEB TAB (Web Projects) */}
+        <div className={`space-y-8 ${activeTab === 'web' ? 'block' : 'hidden'} md:block`}>
+          {/* Mobile-only WebDevTracker */}
+          <div className="block md:hidden">
+            <Suspense fallback={<PanelSkeleton />}>
+              <WebDevTracker projects={projects} onProjectsUpdate={handleProjectsUpdate} sectionTitle={projectSectionTitle} />
+            </Suspense>
+          </div>
+        </div>
+
+        {/* NOTES TAB (Study Notes) */}
+        <div className={`space-y-8 ${activeTab === 'notes' ? 'block' : 'hidden'} md:block`}>
           <Suspense fallback={<PanelSkeleton />}>
-            <WebDevTracker projects={projects} onProjectsUpdate={handleProjectsUpdate} sectionTitle={projectSectionTitle} />
+            <StudyNotes notes={notes} onNotesUpdate={handleNotesUpdate} />
           </Suspense>
         </div>
 
-        <Suspense fallback={<PanelSkeleton />}>
-          <StudyNotes notes={notes} onNotesUpdate={handleNotesUpdate} />
-        </Suspense>
       </div>
+
+      {/* Mobile Bottom Navigation */}
+      <MobileBottomNav activeTab={activeTab} onChangeTab={setActiveTab} />
     </div>
   );
 }

@@ -33,6 +33,14 @@
   .glass-hover {
     @apply transition-all duration-300 hover:bg-gray-900/70 hover:border-gray-700;
   }
+
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 16px);
+  }
+
+  .pt-safe {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
 }
 
 ::-webkit-scrollbar {
