@@ -220,7 +220,7 @@ export function StudyNotes({ notes, onNotesUpdate }: StudyNotesProps) {
                                                                 <a href={fixPdfUrl(note.media_url, note.media_type)} target="_blank" rel="noopener noreferrer" className="px-3 py-1.5 text-xs bg-purple-500/20 text-purple-400 hover:bg-purple-500/30 rounded-lg transition-colors">
                                                                     Open in New Tab
                                                                 </a>
-                                                                <a href={getDownloadUrl(note.media_url, note.media_type)} target="_blank" rel="noopener noreferrer" className="px-3 py-1.5 text-xs bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 rounded-lg transition-colors">
+                                                                <a href={getDownloadUrl(note.media_url)} target="_blank" rel="noopener noreferrer" className="px-3 py-1.5 text-xs bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 rounded-lg transition-colors">
                                                                     Download
                                                                 </a>
                                                             </div>

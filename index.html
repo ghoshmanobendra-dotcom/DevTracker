@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 
   <!-- ── Favicon ────────────────────────────────────────────────── -->
   <link rel="icon" type="image/svg+xml" href="/logo.svg" />
@@ -12,6 +12,19 @@
   <meta name="description" content="Track your coding journey, daily goals, LeetCode stats, and career progress in one place." />
   <!-- Prevents a flash of white chrome on mobile before CSS loads -->
   <meta name="theme-color" content="#000000" />
+
+  <!-- ── PWA / Mobile app meta tags ───────────────────────────── -->
+  <!-- iOS: enable full-screen standalone mode (required for older iOS) -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <!-- iOS: status bar style — black-translucent overlays the bar so
+       your black background extends edge-to-edge under the notch -->
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <!-- iOS: name shown under the home screen icon -->
+  <meta name="apple-mobile-web-app-title" content="DevTracker" />
+  <!-- iOS: home screen icon (manifest icons are ignored by iOS Safari) -->
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <!-- Android Chrome: additional standalone hint -->
+  <meta name="mobile-web-app-capable" content="yes" />
 
   <!-- ══════════════════════════════════════════════════════════════
        STEP 1 — preconnect to origins we fetch from immediately

@@ -2,6 +2,8 @@ import { lazy, Suspense } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { Loader2 } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
+import { InstallPrompt } from './components/InstallPrompt';
+import { OfflineBanner } from './components/OfflineBanner';
 
 // ── Route-level lazy chunks ──────────────────────────────────────────────────
 // Logged-out users never download Dashboard JS.
@@ -60,9 +62,14 @@ function AppContent() {
 
 function App() {
   return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
+    <>
+      {/* Always-visible PWA chrome — outside auth so they work on both pages */}
+      <OfflineBanner />
+      <InstallPrompt />
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    </>
   );
 }
 
