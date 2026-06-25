@@ -211,16 +211,16 @@ export function StudyNotes({ notes, onNotesUpdate }: StudyNotesProps) {
                                                     </div>
                                                 ) : note.media_type?.toLowerCase().includes('pdf') ? (
                                                     <div className="rounded-xl overflow-hidden border border-white/10 bg-black/20 flex flex-col">
-                                                        <div className="flex items-center justify-between p-3 bg-gray-900 border-b border-white/10">
-                                                            <div className="flex items-center gap-2">
-                                                                <FileText className="w-5 h-5 text-red-400" />
-                                                                <span className="text-sm font-medium text-white truncate max-w-[200px]">{note.media_name || 'PDF Document'}</span>
+                                                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-gray-900 border-b border-white/10">
+                                                            <div className="flex items-center gap-2 overflow-hidden w-full sm:w-auto">
+                                                                <FileText className="w-5 h-5 text-red-400 flex-shrink-0" />
+                                                                <span className="text-sm font-medium text-white truncate flex-1">{note.media_name || 'PDF Document'}</span>
                                                             </div>
-                                                            <div className="flex gap-2">
-                                                                <a href={fixPdfUrl(note.media_url, note.media_type)} target="_blank" rel="noopener noreferrer" className="px-3 py-1.5 text-xs bg-purple-500/20 text-purple-400 hover:bg-purple-500/30 rounded-lg transition-colors">
+                                                            <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+                                                                <a href={fixPdfUrl(note.media_url, note.media_type)} target="_blank" rel="noopener noreferrer" className="flex-1 sm:flex-none text-center px-3 py-1.5 text-xs bg-purple-500/20 text-purple-400 hover:bg-purple-500/30 rounded-lg transition-colors whitespace-nowrap">
                                                                     Open in New Tab
                                                                 </a>
-                                                                <a href={getDownloadUrl(note.media_url)} target="_blank" rel="noopener noreferrer" className="px-3 py-1.5 text-xs bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 rounded-lg transition-colors">
+                                                                <a href={getDownloadUrl(note.media_url)} target="_blank" rel="noopener noreferrer" className="flex-1 sm:flex-none text-center px-3 py-1.5 text-xs bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 rounded-lg transition-colors whitespace-nowrap">
                                                                     Download
                                                                 </a>
                                                             </div>
@@ -234,18 +234,18 @@ export function StudyNotes({ notes, onNotesUpdate }: StudyNotesProps) {
                                                         />
                                                     </div>
                                                 ) : (
-                                                    <div className="flex items-center gap-3 p-3 bg-gray-900/50 border border-white/10 rounded-xl">
-                                                        <div className="p-2 bg-purple-500/10 rounded-lg text-purple-400">
-                                                            <FileText className="w-5 h-5" />
+                                                    <div className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 bg-gray-900/50 border border-white/10 rounded-xl">
+                                                        <div className="flex items-center gap-3 overflow-hidden w-full sm:w-auto flex-1">
+                                                            <div className="p-2 bg-purple-500/10 rounded-lg text-purple-400 flex-shrink-0">
+                                                                <FileText className="w-5 h-5" />
+                                                            </div>
+                                                            <p className="text-sm font-medium text-white truncate min-w-0">{note.media_name || 'Attachment'}</p>
                                                         </div>
-                                                        <div className="flex-1 min-w-0">
-                                                            <p className="text-sm font-medium text-white truncate">{note.media_name || 'Attachment'}</p>
-                                                        </div>
-                                                        <div className="flex gap-2">
-                                                            <a href={note.media_url} target="_blank" rel="noopener noreferrer" className="px-3 py-1.5 text-xs bg-purple-500/20 text-purple-400 hover:bg-purple-500/30 rounded-lg transition-colors">
+                                                        <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+                                                            <a href={note.media_url} target="_blank" rel="noopener noreferrer" className="flex-1 sm:flex-none text-center px-3 py-1.5 text-xs bg-purple-500/20 text-purple-400 hover:bg-purple-500/30 rounded-lg transition-colors whitespace-nowrap">
                                                                 Open
                                                             </a>
-                                                            <a href={getDownloadUrl(note.media_url)} target="_blank" rel="noopener noreferrer" className="px-3 py-1.5 text-xs bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 rounded-lg transition-colors">
+                                                            <a href={getDownloadUrl(note.media_url)} target="_blank" rel="noopener noreferrer" className="flex-1 sm:flex-none text-center px-3 py-1.5 text-xs bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 rounded-lg transition-colors whitespace-nowrap">
                                                                 Download
                                                             </a>
                                                         </div>
